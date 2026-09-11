@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A thoughtful workspace for understanding emotional signals in written language.">
+  <title>PsyThread | Emotional Signal Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script>
+    // Runs before first paint to avoid a flash of the wrong theme.
+    (function () {
+      var stored = localStorage.getItem("psythread-theme");
+      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute("data-theme", stored || (prefersDark ? "dark" : "light"));
+    })();
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="page-shell">
+    <nav class="topbar" aria-label="Main navigation">
+      <a class="brand" href="/" aria-label="PsyThread home"><span class="brand-mark">P</span><span>psythread</span></a>
+      <div class="section-nav">
+        <a href="#how-it-works">How it works</a>
+        <a href="#analyzer">Analyzer</a>
+        <a href="#batch">Batch</a>
+        <a href="#about">About</a>
+        <a href="#support">Support</a>
+        <a href="#dataset">Dataset</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <div class="topbar-right">
+        <div class="nav-meta"><span class="status-dot"></span> Private analysis space <span class="nav-divider"></span> Research preview</div>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Emotional signal studio <span></span> 01</p>
+        <h1>Make room for<br><em>what is being said.</em></h1>
+        <p class="hero-description">A quiet, evidence-led workspace for noticing patterns in language. Explore the emotional signals behind a message with care and context.</p>
+      </div>
+      <div class="hero-note" aria-label="Model information">
+        <div class="note-pin"></div>
+        <p class="note-kicker">A note on the method</p>
+        <p>PsyThread reads language as a signal, not a diagnosis. Every result is a starting point for human understanding.</p>
+        <span class="note-line"></span>
+        <small>MentalBERT &middot; 7 signal classes &middot; class-weighted training</small>
+      </div>
+    </header>
+
+    <main>
+      <section class="how-it-works" id="how-it-works">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">00 <span></span> The process</p>
+            <h2>How it works</h2>
+          </div>
+        </div>
+        <div class="steps-grid">
+          <div class="step-card">
+            <span class="step-number">01</span>
+            <h3>Write freely</h3>
+            <p>Type or paste anything, in your own words — a message, a post, a thought.</p>
+          </div>
+          <div class="step-card">
+            <span class="step-number">02</span>
+            <h3>The model reads the pattern</h3>
+            <p>It compares your words against patterns learned from real, everyday language — not a checklist of symptoms.</p>
+          </div>
+          <div class="step-card">
+            <span class="step-number">03</span>
+            <h3>Get a starting point</h3>
+            <p>You get a signal and a plain-language explanation of what shaped it — a starting point for reflection, not a diagnosis.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="analysis-section" id="analyzer">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">01 <span></span> Live reading</p>
+            <h2>What would you like to understand?</h2>
+          </div>
+          <span class="section-index">/ write freely</span>
+        </div>
+        <div class="input-frame">
+          <label for="input-text">Your text</label>
+          <textarea id="input-text" rows="5" placeholder="Paste a post, message, or thought here..." aria-describedby="input-hint"></textarea>
+          <div class="input-footer"><span id="input-hint">Your words stay in this session.</span><span id="word-counter">0 words</span></div>
+        </div>
+        <button id="analyze-btn" type="button"><span id="analyze-btn-text">Read the signal</span><span class="button-arrow" aria-hidden="true">&rarr;</span></button>
+
+        <div id="result" class="result-box hidden" aria-live="polite">
+          <div class="result-intro"><span class="result-pulse"></span><span>Reading complete</span><span id="segments-note" class="segments-note hidden"></span></div>
+
+          <div class="result-grid">
+            <div class="result-metric">
+              <span class="result-label">Primary signal</span>
+              <div><span id="result-sentiment" class="badge"></span> <span id="result-confidence" class="confidence"></span></div>
+            </div>
+            <div class="result-metric">
+              <span class="result-label">Care level</span>
+              <span id="result-severity" class="badge"></span>
+            </div>
+          </div>
+
+          <div id="translation-note" class="translation-note hidden"></div>
+
+          <div id="uncertain-note" class="uncertain-note hidden">
+            The model isn't confident about this reading, the signal in this text was weak or mixed. Treat the label loosely.
+          </div>
+
+          <div id="explanation-block" class="explanation-block hidden">
+            <span class="result-label">What shaped this reading</span>
+            <div id="explanation-words" class="explanation-words"></div>
+          </div>
+
+          <div id="themes-block" class="themes-block hidden">
+            <span class="result-label">Possible themes noticed</span>
+            <div id="themes-list" class="themes-list"></div>
+            <p class="themes-caveat">Based on recognizable phrases, not a clinical assessment.</p>
+          </div>
+
+          <div id="crisis-resources" class="crisis-resources hidden">
+            <p class="crisis-resources-title">If you're going through something difficult, support is available:</p>
+            <ul id="crisis-resources-list"></ul>
+          </div>
+
+          <div id="result-keywords" class="keywords"></div>
+
+          <div id="feedback-block" class="feedback-block">
+            <span class="result-label">Was this accurate?</span>
+            <div id="feedback-buttons" class="feedback-buttons">
+              <button type="button" id="feedback-yes" class="feedback-btn">Yes</button>
+              <button type="button" id="feedback-no" class="feedback-btn">No</button>
+            </div>
+            <div id="feedback-correction" class="feedback-correction hidden">
+              <label for="feedback-correct-label">What would have been closer?</label>
+              <select id="feedback-correct-label">
+                <option value="">Select one (optional)</option>
+                <option value="Normal">Normal</option>
+                <option value="Depression">Depression</option>
+                <option value="Suicidal">Suicidal</option>
+                <option value="Anxiety">Anxiety</option>
+                <option value="Stress">Stress</option>
+                <option value="Bipolar">Bipolar</option>
+                <option value="Personality disorder">Personality disorder</option>
+              </select>
+              <label class="feedback-consent-label">
+                <input type="checkbox" id="feedback-consent-checkbox">
+                Also save this text (not just the label) to help improve future models
+              </label>
+              <button type="button" id="feedback-submit-correction" class="feedback-btn feedback-btn-submit">Submit</button>
+            </div>
+            <p id="feedback-thanks" class="feedback-thanks hidden">Thanks! that helps.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="batch-section" id="batch">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">01b <span></span> Multiple entries</p>
+            <h2>Analyze a batch</h2>
+          </div>
+        </div>
+        <p class="batch-intro">
+          Upload a CSV with a text column (named "text", "content", "statement", or
+          "message") to analyze several entries at once, useful for reviewing a
+          journal export or a set of messages together. Nothing in the file is saved;
+          it's processed and returned in this browser only. Capped at 150 rows per
+          upload.
+        </p>
+        <div class="batch-upload">
+          <input type="file" id="batch-file-input" accept=".csv">
+          <button type="button" id="batch-analyze-btn"><span id="batch-btn-text">Analyze batch</span></button>
+        </div>
+        <div id="batch-error" class="batch-error hidden"></div>
+        <div id="batch-results" class="batch-results hidden">
+          <p id="batch-summary" class="batch-summary"></p>
+          <div class="batch-table-wrap">
+            <table class="batch-table">
+              <thead><tr><th>Text</th><th>Signal</th><th>Confidence</th><th>Care level</th></tr></thead>
+              <tbody id="batch-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="about-section" id="about">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">02 <span></span> Why this exists</p>
+            <h2>A note on the method</h2>
+          </div>
+        </div>
+        <p class="about-text">
+          PsyThread began as a research project exploring whether language patterns in
+          everyday writing could offer an early, gentle signal about someone's state of
+          mind. It's trained on real, informal social-media text, not clinical case
+          notes because that's closer to how people actually write when they're
+          struggling. It doesn't replace a professional, a friend, or a real
+          conversation. It's meant to notice, not to diagnose.
+        </p>
+      </section>
+
+      <section class="support-section" id="support">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">03 <span></span> Support</p>
+            <h2>Help is always available</h2>
+          </div>
+        </div>
+        <p class="support-intro">Whether or not you use the analyzer, these are here if you need them.</p>
+        <ul class="support-list">
+          {% for r in crisis_resources %}
+          <li><strong>{{ r.name }}</strong> — {{ r.contact }} <span>({{ r.note }})</span></li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="dashboard-section" id="dataset">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">04 <span></span> The wider picture</p>
+            <h2>Patterns across the dataset</h2>
+          </div>
+          <div id="dashboard-summary" class="dataset-count">Loading the archive...</div>
+        </div>
+        <div class="charts">
+          <div class="chart-card chart-card-large"><div class="chart-label">Signal distribution</div><canvas id="sentimentChart"></canvas></div>
+          <div class="chart-card"><div class="chart-label">Language clusters</div><canvas id="topicChart"></canvas></div>
+        </div>
+      </section>
+
+      <section class="faq-section" id="faq">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">05 <span></span> Questions</p>
+            <h2>Before you ask</h2>
+          </div>
+        </div>
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary>Is this a diagnosis?</summary>
+            <p>No. PsyThread reads patterns in language, not clinical symptoms. It's a starting point for reflection, not a medical or psychological assessment.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Is what I write private?</summary>
+            <p>By default, yes, your text isn't stored after your session ends. It's sent to the model for analysis and discarded. The one exception: if you mark a result as inaccurate and explicitly check the box to also save the text, that specific entry is stored (paired with your correction) to help improve future versions. That box is unchecked by default and only appears if you choose to give feedback.</p>
+          </details>
+          <details class="faq-item">
+            <summary>What languages does it support?</summary>
+            <p>The model itself was trained on English text. For other languages including Malay your text is automatically translated to English before analysis, and the translation is shown so you can check it. Translation quality varies, so treat results for non-English input with extra caution.</p>
+          </details>
+          <details class="faq-item">
+            <summary>How accurate is it?</summary>
+            <p>Around 83% on held-out test data across 7 categories but real-world accuracy varies with writing style. Treat every result as a signal to reflect on, not a fact.</p>
+          </details>
+          <details class="faq-item">
+            <summary>What should I do if I'm struggling?</summary>
+            <p>Please reach out to a real person, a trusted friend, family member, or a professional. If it feels urgent, see the Support section above for immediate help.</p>
+          </details>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>PsyThread / sentiment analysis for psychological language</span>
+      <span>For research use &middot; Not medical advice</span>
+    </footer>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

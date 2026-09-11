@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+models/sentiment_model/
+models/checkpoints/
+data/*.csv
+data/raw_dataset.csv
+.env
+*.log
+.vscode/

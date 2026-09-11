@@ -1,0 +1,821 @@
+{
+  "Anxiety": [
+    {
+      "topic_id": 0,
+      "keywords": [
+        "like",
+        "want",
+        "feel",
+        "know",
+        "people",
+        "time",
+        "get",
+        "day"
+      ],
+      "weights": [
+        0.0154,
+        0.01248,
+        0.0109,
+        0.01052,
+        0.00945,
+        0.00921,
+        0.0092,
+        0.00898
+      ]
+    },
+    {
+      "topic_id": 1,
+      "keywords": [
+        "anxiety",
+        "like",
+        "feel",
+        "attack",
+        "panic",
+        "time",
+        "get",
+        "day"
+      ],
+      "weights": [
+        0.02522,
+        0.01623,
+        0.01356,
+        0.01124,
+        0.00966,
+        0.00941,
+        0.00927,
+        0.00844
+      ]
+    },
+    {
+      "topic_id": 2,
+      "keywords": [
+        "doctor",
+        "heart",
+        "blood",
+        "week",
+        "test",
+        "year",
+        "pain",
+        "went"
+      ],
+      "weights": [
+        0.01223,
+        0.01163,
+        0.01127,
+        0.0099,
+        0.00951,
+        0.00885,
+        0.00813,
+        0.00795
+      ]
+    },
+    {
+      "topic_id": 3,
+      "keywords": [
+        "anxiety",
+        "like",
+        "feel",
+        "symptom",
+        "pain",
+        "get",
+        "time",
+        "know"
+      ],
+      "weights": [
+        0.01877,
+        0.01609,
+        0.01537,
+        0.00936,
+        0.00925,
+        0.00878,
+        0.00815,
+        0.00809
+      ]
+    },
+    {
+      "topic_id": 4,
+      "keywords": [
+        "rabies",
+        "cat",
+        "nervous",
+        "worried",
+        "bit",
+        "skin",
+        "dog",
+        "know"
+      ],
+      "weights": [
+        0.01793,
+        0.01404,
+        0.01188,
+        0.0109,
+        0.00937,
+        0.00935,
+        0.00898,
+        0.00893
+      ]
+    }
+  ],
+  "Normal": [
+    {
+      "topic_id": 0,
+      "keywords": [
+        "day",
+        "work",
+        "back",
+        "night",
+        "get",
+        "today",
+        "sleep",
+        "go"
+      ],
+      "weights": [
+        0.01834,
+        0.0152,
+        0.01277,
+        0.01253,
+        0.01213,
+        0.0121,
+        0.01155,
+        0.01138
+      ]
+    },
+    {
+      "topic_id": 1,
+      "keywords": [
+        "like",
+        "feel",
+        "good",
+        "one",
+        "would",
+        "really",
+        "day",
+        "time"
+      ],
+      "weights": [
+        0.02443,
+        0.0163,
+        0.01576,
+        0.01396,
+        0.01249,
+        0.01106,
+        0.01041,
+        0.0081
+      ]
+    },
+    {
+      "topic_id": 2,
+      "keywords": [
+        "want",
+        "go",
+        "ha",
+        "time",
+        "work",
+        "back",
+        "today",
+        "school"
+      ],
+      "weights": [
+        0.02373,
+        0.01883,
+        0.01508,
+        0.01001,
+        0.00999,
+        0.00875,
+        0.00837,
+        0.00784
+      ]
+    },
+    {
+      "topic_id": 3,
+      "keywords": [
+        "want",
+        "new",
+        "twitter",
+        "like",
+        "get",
+        "wish",
+        "year",
+        "good"
+      ],
+      "weights": [
+        0.01407,
+        0.013,
+        0.01209,
+        0.01134,
+        0.01063,
+        0.00892,
+        0.00839,
+        0.00821
+      ]
+    },
+    {
+      "topic_id": 4,
+      "keywords": [
+        "help",
+        "think",
+        "lol",
+        "phone",
+        "get",
+        "let",
+        "would",
+        "know"
+      ],
+      "weights": [
+        0.01484,
+        0.01115,
+        0.01109,
+        0.01032,
+        0.00949,
+        0.00907,
+        0.00892,
+        0.00812
+      ]
+    }
+  ],
+  "Depression": [
+    {
+      "topic_id": 0,
+      "keywords": [
+        "depression",
+        "anxiety",
+        "help",
+        "get",
+        "day",
+        "time",
+        "feeling",
+        "know"
+      ],
+      "weights": [
+        0.02455,
+        0.0192,
+        0.01261,
+        0.00949,
+        0.00895,
+        0.00861,
+        0.00857,
+        0.00813
+      ]
+    },
+    {
+      "topic_id": 1,
+      "keywords": [
+        "job",
+        "get",
+        "work",
+        "day",
+        "time",
+        "life",
+        "even",
+        "cannot"
+      ],
+      "weights": [
+        0.02041,
+        0.01865,
+        0.01822,
+        0.01615,
+        0.01127,
+        0.01125,
+        0.011,
+        0.00984
+      ]
+    },
+    {
+      "topic_id": 2,
+      "keywords": [
+        "year",
+        "friend",
+        "time",
+        "would",
+        "know",
+        "school",
+        "got",
+        "never"
+      ],
+      "weights": [
+        0.01718,
+        0.01496,
+        0.01065,
+        0.01062,
+        0.00892,
+        0.00891,
+        0.00873,
+        0.00783
+      ]
+    },
+    {
+      "topic_id": 3,
+      "keywords": [
+        "want",
+        "life",
+        "know",
+        "even",
+        "people",
+        "get",
+        "thing",
+        "make"
+      ],
+      "weights": [
+        0.02729,
+        0.01825,
+        0.01774,
+        0.01434,
+        0.01258,
+        0.01236,
+        0.01038,
+        0.00963
+      ]
+    },
+    {
+      "topic_id": 4,
+      "keywords": [
+        "people",
+        "life",
+        "depression",
+        "thing",
+        "would",
+        "make",
+        "way",
+        "world"
+      ],
+      "weights": [
+        0.02113,
+        0.01352,
+        0.01301,
+        0.008,
+        0.00616,
+        0.00545,
+        0.00527,
+        0.00525
+      ]
+    }
+  ],
+  "Suicidal": [
+    {
+      "topic_id": 0,
+      "keywords": [
+        "get",
+        "job",
+        "work",
+        "would",
+        "life",
+        "go",
+        "year",
+        "time"
+      ],
+      "weights": [
+        0.01127,
+        0.01011,
+        0.00937,
+        0.00914,
+        0.00816,
+        0.00799,
+        0.00795,
+        0.00783
+      ]
+    },
+    {
+      "topic_id": 1,
+      "keywords": [
+        "feel",
+        "like",
+        "time",
+        "one",
+        "know",
+        "people",
+        "even",
+        "feeling"
+      ],
+      "weights": [
+        0.03966,
+        0.03619,
+        0.01118,
+        0.01016,
+        0.00933,
+        0.00901,
+        0.00892,
+        0.00884
+      ]
+    },
+    {
+      "topic_id": 2,
+      "keywords": [
+        "life",
+        "want",
+        "people",
+        "know",
+        "would",
+        "die",
+        "live",
+        "one"
+      ],
+      "weights": [
+        0.0287,
+        0.02824,
+        0.01945,
+        0.01281,
+        0.01232,
+        0.01122,
+        0.00958,
+        0.00938
+      ]
+    },
+    {
+      "topic_id": 3,
+      "keywords": [
+        "want",
+        "cannot",
+        "anymore",
+        "fucking",
+        "tired",
+        "die",
+        "take",
+        "hate"
+      ],
+      "weights": [
+        0.06358,
+        0.05849,
+        0.04731,
+        0.03793,
+        0.02832,
+        0.02566,
+        0.02501,
+        0.02135
+      ]
+    },
+    {
+      "topic_id": 4,
+      "keywords": [
+        "friend",
+        "year",
+        "know",
+        "like",
+        "want",
+        "really",
+        "feel",
+        "time"
+      ],
+      "weights": [
+        0.01423,
+        0.01365,
+        0.01347,
+        0.01087,
+        0.01013,
+        0.00943,
+        0.00927,
+        0.00917
+      ]
+    }
+  ],
+  "Stress": [
+    {
+      "topic_id": 0,
+      "keywords": [
+        "time",
+        "work",
+        "like",
+        "feel",
+        "job",
+        "day",
+        "stress",
+        "get"
+      ],
+      "weights": [
+        0.02228,
+        0.01727,
+        0.01651,
+        0.0126,
+        0.01211,
+        0.01163,
+        0.01007,
+        0.00937
+      ]
+    },
+    {
+      "topic_id": 1,
+      "keywords": [
+        "get",
+        "life",
+        "time",
+        "thing",
+        "job",
+        "want",
+        "well",
+        "work"
+      ],
+      "weights": [
+        0.00973,
+        0.00931,
+        0.00926,
+        0.00912,
+        0.0086,
+        0.00718,
+        0.00684,
+        0.00669
+      ]
+    },
+    {
+      "topic_id": 2,
+      "keywords": [
+        "stress",
+        "feel",
+        "get",
+        "help",
+        "like",
+        "day",
+        "stressed",
+        "thing"
+      ],
+      "weights": [
+        0.04443,
+        0.01167,
+        0.0109,
+        0.0105,
+        0.01015,
+        0.00887,
+        0.00849,
+        0.00708
+      ]
+    },
+    {
+      "topic_id": 3,
+      "keywords": [
+        "like",
+        "feel",
+        "get",
+        "know",
+        "want",
+        "really",
+        "even",
+        "need"
+      ],
+      "weights": [
+        0.0241,
+        0.02172,
+        0.01685,
+        0.01464,
+        0.01292,
+        0.01221,
+        0.01048,
+        0.00948
+      ]
+    },
+    {
+      "topic_id": 4,
+      "keywords": [
+        "time",
+        "year",
+        "day",
+        "could",
+        "one",
+        "would",
+        "mother",
+        "stress"
+      ],
+      "weights": [
+        0.01117,
+        0.00683,
+        0.00609,
+        0.00602,
+        0.00589,
+        0.00573,
+        0.0051,
+        0.00507
+      ]
+    }
+  ],
+  "Bipolar": [
+    {
+      "topic_id": 0,
+      "keywords": [
+        "feel",
+        "bipolar",
+        "day",
+        "mania",
+        "sleep",
+        "know",
+        "even",
+        "get"
+      ],
+      "weights": [
+        0.01661,
+        0.01025,
+        0.00986,
+        0.00934,
+        0.00902,
+        0.00855,
+        0.00826,
+        0.00757
+      ]
+    },
+    {
+      "topic_id": 1,
+      "keywords": [
+        "med",
+        "mg",
+        "day",
+        "feel",
+        "month",
+        "take",
+        "taking",
+        "year"
+      ],
+      "weights": [
+        0.01517,
+        0.01282,
+        0.01067,
+        0.0106,
+        0.00927,
+        0.00881,
+        0.00879,
+        0.00848
+      ]
+    },
+    {
+      "topic_id": 2,
+      "keywords": [
+        "bipolar",
+        "people",
+        "disorder",
+        "anyone",
+        "diagnosed",
+        "know",
+        "year",
+        "feel"
+      ],
+      "weights": [
+        0.02989,
+        0.01303,
+        0.01209,
+        0.01021,
+        0.00913,
+        0.00805,
+        0.00781,
+        0.00738
+      ]
+    },
+    {
+      "topic_id": 3,
+      "keywords": [
+        "feel",
+        "know",
+        "really",
+        "get",
+        "time",
+        "feeling",
+        "life",
+        "want"
+      ],
+      "weights": [
+        0.03588,
+        0.0123,
+        0.01161,
+        0.01118,
+        0.01034,
+        0.00931,
+        0.009,
+        0.00849
+      ]
+    },
+    {
+      "topic_id": 4,
+      "keywords": [
+        "get",
+        "feel",
+        "know",
+        "want",
+        "work",
+        "time",
+        "job",
+        "really"
+      ],
+      "weights": [
+        0.01134,
+        0.00989,
+        0.00944,
+        0.00921,
+        0.00882,
+        0.00792,
+        0.00772,
+        0.00766
+      ]
+    }
+  ],
+  "Personality disorder": [
+    {
+      "topic_id": 0,
+      "keywords": [
+        "avpd",
+        "know",
+        "get",
+        "life",
+        "year",
+        "want",
+        "time",
+        "thing"
+      ],
+      "weights": [
+        0.01563,
+        0.01166,
+        0.00962,
+        0.00939,
+        0.00878,
+        0.00875,
+        0.00841,
+        0.00762
+      ]
+    },
+    {
+      "topic_id": 1,
+      "keywords": [
+        "get",
+        "avpd",
+        "anyone",
+        "life",
+        "know",
+        "else",
+        "even",
+        "think"
+      ],
+      "weights": [
+        0.01078,
+        0.00981,
+        0.00863,
+        0.00765,
+        0.00761,
+        0.00754,
+        0.0073,
+        0.00719
+      ]
+    },
+    {
+      "topic_id": 2,
+      "keywords": [
+        "time",
+        "even",
+        "friend",
+        "know",
+        "want",
+        "one",
+        "life",
+        "never"
+      ],
+      "weights": [
+        0.01127,
+        0.011,
+        0.01057,
+        0.00992,
+        0.00988,
+        0.00921,
+        0.00907,
+        0.00892
+      ]
+    },
+    {
+      "topic_id": 3,
+      "keywords": [
+        "want",
+        "avpd",
+        "get",
+        "even",
+        "know",
+        "really",
+        "go",
+        "think"
+      ],
+      "weights": [
+        0.0134,
+        0.0113,
+        0.01072,
+        0.01071,
+        0.00979,
+        0.00798,
+        0.00772,
+        0.00746
+      ]
+    },
+    {
+      "topic_id": 4,
+      "keywords": [
+        "know",
+        "even",
+        "thing",
+        "think",
+        "time",
+        "make",
+        "life",
+        "really"
+      ],
+      "weights": [
+        0.01412,
+        0.01081,
+        0.00999,
+        0.00862,
+        0.00838,
+        0.00831,
+        0.00811,
+        0.00785
+      ]
+    }
+  ]
+}
