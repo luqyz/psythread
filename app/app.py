@@ -30,6 +30,12 @@ from deep_translator import GoogleTranslator
 # language check.
 DetectorFactory.seed = 0
 
+# Limits PyTorch's intra-op thread pool — on a memory/CPU-constrained deploy
+# (e.g. Render's free 512MB tier), letting torch spawn multiple threads adds
+# overhead without much benefit since the instance itself only has a
+# fraction of a CPU core anyway.
+torch.set_num_threads(1)
+
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 from preprocess import clean_for_transformer  # noqa: E402
 
@@ -265,30 +271,48 @@ def predict_proba_batch(texts):
     of class probabilities. This is the shape LIME's text explainer expects —
     it calls this repeatedly on perturbed versions of the input text to work
     out which words push the prediction which way.
+
+    Processes in small sub-batches (BATCH_CHUNK_SIZE) rather than tokenizing
+    every perturbed text at once — LIME can call this with 100+ texts in a
+    single pass, and padding+forward-passing all of them together spikes
+    peak memory far higher than processing a few at a time. This matters a
+    lot on memory-constrained deploys (e.g. Render's free 512MB tier).
     """
     model, tokenizer = get_model()
-    cleaned = [clean_for_transformer(t) for t in texts]
-    inputs = tokenizer(
-        cleaned, return_tensors="pt", truncation=True, max_length=128, padding=True
-    )
-    inputs.pop("token_type_ids", None)
-    with torch.no_grad():
-        logits = model(**inputs).logits
-        probs = torch.softmax(logits, dim=-1).numpy()
-    return probs
+    BATCH_CHUNK_SIZE = 16
+    all_probs = []
+    for i in range(0, len(texts), BATCH_CHUNK_SIZE):
+        chunk = texts[i:i + BATCH_CHUNK_SIZE]
+        cleaned = [clean_for_transformer(t) for t in chunk]
+        inputs = tokenizer(
+            cleaned, return_tensors="pt", truncation=True, max_length=128, padding=True
+        )
+        inputs.pop("token_type_ids", None)
+        with torch.no_grad():
+            logits = model(**inputs).logits
+            probs = torch.softmax(logits, dim=-1).numpy()
+        all_probs.append(probs)
+    return np.concatenate(all_probs, axis=0)
 
 
 _explainer = LimeTextExplainer(class_names=LABELS)
 
+# Lower on memory-constrained deploys than the local default — LIME's
+# memory use scales with num_samples (more perturbed texts run through the
+# model per explanation). 100 balances stability against peak memory.
+LIME_NUM_SAMPLES = int(os.environ.get("LIME_NUM_SAMPLES", "100"))
 
-def explain_prediction(text: str, predicted_label: str, num_features: int = 8, num_samples: int = 200):
+
+def explain_prediction(text: str, predicted_label: str, num_features: int = 8, num_samples: int = None):
     """
     Runs LIME on the input text, returning the words that most pushed the
     prediction toward (positive weight) or away from (negative weight) the
-    predicted class. num_samples controls the accuracy/speed tradeoff — LIME
-    works by perturbing the text and re-running the model many times, so
-    lower values are faster but noisier.
+    predicted class. num_samples controls the accuracy/speed AND memory
+    tradeoff — LIME works by perturbing the text and re-running the model
+    many times, so lower values are faster and lighter but noisier.
     """
+    if num_samples is None:
+        num_samples = LIME_NUM_SAMPLES
     label_idx = LABELS.index(predicted_label)
     explanation = _explainer.explain_instance(
         text,
