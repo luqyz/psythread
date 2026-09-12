@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+.git/
+models/
+data/raw_dataset.csv
+data/feedback_log.csv
+data/feedback_training_data.csv
+.env
+*.log
+.vscode/
