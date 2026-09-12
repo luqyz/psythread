@@ -226,16 +226,26 @@ def detect_and_translate(text: str):
         else:
             return text, False, "en"
 
-    try:
+        try:
         translated = GoogleTranslator(source=lang, target="en").translate(text)
         if translated and translated.strip().lower() != text.strip().lower():
             return translated, True, lang
     except Exception as e:
-        print(f"Translation failed: {e}")
+        print(f"Translation failed (attempt 1): {e}")
+        # Retry once — on a cold-start instance (e.g. Cloud Run scaling up
+        # from zero), the first outbound network call can time out while
+        # the connection is still being established. A second attempt on
+        # the same warmed-up instance usually succeeds.
+        try:
+            translated = GoogleTranslator(source=lang, target="en").translate(text)
+            if translated and translated.strip().lower() != text.strip().lower():
+                return translated, True, lang
+        except Exception as e2:
+            print(f"Translation failed (attempt 2): {e2}")
 
-    # Translation didn't change anything (or errored) — treat as untranslated
-    # so downstream logic doesn't silently rely on non-English text as if it
-    # were English.
+    # Translation didn't change anything (or errored both times) — treat as
+    # untranslated so downstream logic doesn't silently rely on non-English
+    # text as if it were English.
     return text, False, lang
 
 
