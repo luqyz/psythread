@@ -260,8 +260,19 @@ def get_model():
                 f"Hugging Face Hub repo id containing the trained model."
             )
         _tokenizer = AutoTokenizer.from_pretrained(source)
-        _model = AutoModelForSequenceClassification.from_pretrained(source)
-        _model.eval()
+        model = AutoModelForSequenceClassification.from_pretrained(source)
+        model.eval()
+        # Dynamic int8 quantization of Linear layers — cuts memory footprint
+        # roughly 4x for those layers (which make up most of a transformer's
+        # parameters), with minimal accuracy impact, and is specifically
+        # optimized for CPU inference (unlike float16, which isn't well
+        # accelerated on most CPUs). Applied at load time rather than saved
+        # to disk, so this works whether the model comes from local disk or
+        # Hugging Face Hub. Matters a lot on memory-constrained deploys
+        # (e.g. Render's free 512MB tier).
+        _model = torch.quantization.quantize_dynamic(
+            model, {torch.nn.Linear}, dtype=torch.qint8
+        )
     return _model, _tokenizer
 
 

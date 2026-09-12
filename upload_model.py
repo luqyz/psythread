@@ -8,7 +8,7 @@ Usage:
 """
 from huggingface_hub import HfApi
 
-REPO_ID = "luqyz/psythread-mentalbert"  # <-- change this
+REPO_ID = "luqyz/psythread-mentalbert"  
 MODEL_FOLDER = "models/sentiment_model"
 
 api = HfApi()
