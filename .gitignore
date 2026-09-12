@@ -1,10 +1,10 @@
 venv/
 __pycache__/
 *.pyc
-models/sentiment_model/
-models/checkpoints/
-data/*.csv
+models/
 data/raw_dataset.csv
+data/feedback_log.csv
+data/feedback_training_data.csv
 .env
 *.log
 .vscode/
