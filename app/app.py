@@ -226,18 +226,18 @@ def detect_and_translate(text: str):
         else:
             return text, False, "en"
 
-    try:
+        try:
         translated = GoogleTranslator(source=lang, target="en").translate(text)
         if translated and translated.strip().lower() != text.strip().lower():
             return translated, True, lang
     except Exception as e:
-        print(f"Translation failed (attempt 1): {e}")
+        print(f"GoogleTranslator failed: {e}")
         try:
-            translated = GoogleTranslator(source=lang, target="en").translate(text)
+            translated = MyMemoryTranslator(source=lang, target="en").translate(text)
             if translated and translated.strip().lower() != text.strip().lower():
                 return translated, True, lang
         except Exception as e2:
-            print(f"Translation failed (attempt 2): {e2}")
+            print(f"MyMemoryTranslator failed: {e2}")
 
     return text, False, lang
 
