@@ -1,7 +1,7 @@
 """
 Flask app: serves the trained DistilBERT model for live text analysis, plus
 a dashboard summarizing the scraped/labeled dataset (sentiment distribution,
-severity tiers, topic keywords) — same idea as the original static
+severity tiers, topic keywords) -- same idea as the original static
 HTML/CSS/JS dashboard, now backed by a real model instead of a static CSV read.
 
 Usage:
@@ -24,13 +24,13 @@ from lime.lime_text import LimeTextExplainer
 from langdetect import detect, LangDetectException, DetectorFactory
 from deep_translator import GoogleTranslator
 
-# langdetect's algorithm is probabilistic and non-deterministic by default —
+# langdetect's algorithm is probabilistic and non-deterministic by default --
 # the same short text can get different results on different runs. Seeding
 # it makes detection consistent, which matters a lot for a safety-relevant
 # language check.
 DetectorFactory.seed = 0
 
-# Limits PyTorch's intra-op thread pool — on a memory/CPU-constrained deploy
+# Limits PyTorch's intra-op thread pool -- on a memory/CPU-constrained deploy
 # (e.g. Render's free 512MB tier), letting torch spawn multiple threads adds
 # overhead without much benefit since the instance itself only has a
 # fraction of a CPU core anyway.
@@ -41,7 +41,7 @@ from preprocess import clean_for_transformer  # noqa: E402
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_DIR = os.path.join(BASE_DIR, "models", "sentiment_model")
-# Fallback source when the local model folder isn't present — e.g. on a
+# Fallback source when the local model folder isn't present -- e.g. on a
 # fresh deploy where the ~440MB model file was never pushed to Git (it's
 # hosted separately on Hugging Face Hub instead). Set via environment
 # variable so this stays configurable without touching code.
@@ -73,11 +73,11 @@ STATUS_TO_SEVERITY = {
     "Normal": "Green",
 }
 
-# Kept as a secondary signal alongside the model's prediction — catches
+# Kept as a secondary signal alongside the model's prediction -- catches
 # explicit crisis language even if the model's top prediction is uncertain.
 CRISIS_KEYWORDS = ["suicide", "kill myself", "end it all", "want to die", "not exist"]
 
-# Same idea, but checked against the RAW untranslated text — a safety net
+# Same idea, but checked against the RAW untranslated text -- a safety net
 # independent of translation quality. Translation of short, informal, or
 # code-mixed non-English text isn't always reliable (see detect_and_translate),
 # and a missed translation should never mean a missed crisis signal. Covers
@@ -88,12 +88,12 @@ NON_ENGLISH_CRISIS_KEYWORDS = [
 ]
 
 # Below this confidence, the UI shows "Uncertain" instead of asserting the
-# top label — with 7 classes, random chance is ~14%, so 45% is a meaningful
+# top label -- with 7 classes, random chance is ~14%, so 45% is a meaningful
 # but not overly strict bar for "the model actually has a signal here".
 CONFIDENCE_THRESHOLD = 0.45
 
 # Malaysian mental health crisis resources, shown when severity is Crisis or
-# Red. Verified current as of 2026 — re-check periodically, hotline details
+# Red. Verified current as of 2026 -- re-check periodically, hotline details
 # can change.
 CRISIS_RESOURCES = [
     {"name": "Talian Kasih", "contact": "15999", "note": "24/7 government helpline, also on WhatsApp 019-261 5999"},
@@ -104,7 +104,7 @@ CRISIS_RESOURCES = [
 
 # Curated phrases per theme, matched against the contraction-normalized text
 # (so "cant sleep" and "can't sleep" both match "cannot sleep" etc). This is
-# plain keyword matching, NOT a trained model — it flags recognizable
+# plain keyword matching, NOT a trained model -- it flags recognizable
 # patterns, it doesn't diagnose. Phrases are written in their post-
 # normalization form since detect_symptom_themes() runs on normalized text.
 SYMPTOM_THEMES = {
@@ -151,7 +151,7 @@ def detect_symptom_themes(text: str):
     """
     Flags recognizable themes present in the text by matching against
     curated phrases (see SYMPTOM_THEMES). This is keyword matching, not a
-    trained classifier — it's meant as a lightweight, explainable "what
+    trained classifier -- it's meant as a lightweight, explainable "what
     patterns are present" signal, not a diagnostic tool. Matching runs on
     contraction-normalized text so apostrophe presence doesn't affect it,
     same reasoning as the model's own input cleaning.
@@ -167,7 +167,7 @@ def detect_symptom_themes(text: str):
 MAX_BATCH_ROWS = 150  # keeps batch requests reasonably fast (no LIME per row)
 
 # Display names for common languages the analyzer will see in a Malaysian
-# context — langdetect returns ISO 639-1 codes, this maps them to names for
+# context -- langdetect returns ISO 639-1 codes, this maps them to names for
 # the UI note ("Translated from Malay...").
 LANGUAGE_NAMES = {
     "ms": "Malay", "id": "Indonesian", "en": "English", "zh-cn": "Chinese",
@@ -176,7 +176,7 @@ LANGUAGE_NAMES = {
     "es": "Spanish",
 }
 
-# Common Malay/Indonesian function words — short, high-frequency, and rarely
+# Common Malay/Indonesian function words -- short, high-frequency, and rarely
 # used any other way. Used only as a tiebreaker when langdetect says "en"
 # but several of these appear, since that combination usually means Malay
 # text sprinkled with English loanwords, not genuine English.
@@ -198,14 +198,14 @@ def detect_and_translate(text: str):
 
     langdetect is known to be unreliable on short text, and especially on
     Malay/Indonesian text that includes English loanwords ("deadline",
-    "give up") — it can misdetect the whole sentence as English and skip
+    "give up") -- it can misdetect the whole sentence as English and skip
     translation entirely. As a safety net, if langdetect says "en" but the
     text contains several common Malay function words, we override to "ms"
     and attempt translation anyway, since silently skipping translation on
     Malay text risks the model reading language it was never trained on.
 
     Passes the detected language explicitly as the translation source
-    (rather than "auto") — Google's own auto-detect is unreliable on short,
+    (rather than "auto") -- Google's own auto-detect is unreliable on short,
     slang-heavy, code-mixed text (a real failure mode seen with informal
     Malay), sometimes silently returning the input unchanged. We also check
     that the translation actually differs from the input before trusting
@@ -226,16 +226,12 @@ def detect_and_translate(text: str):
         else:
             return text, False, "en"
 
-        try:
+    try:
         translated = GoogleTranslator(source=lang, target="en").translate(text)
         if translated and translated.strip().lower() != text.strip().lower():
             return translated, True, lang
     except Exception as e:
         print(f"Translation failed (attempt 1): {e}")
-        # Retry once — on a cold-start instance (e.g. Cloud Run scaling up
-        # from zero), the first outbound network call can time out while
-        # the connection is still being established. A second attempt on
-        # the same warmed-up instance usually succeeds.
         try:
             translated = GoogleTranslator(source=lang, target="en").translate(text)
             if translated and translated.strip().lower() != text.strip().lower():
@@ -243,9 +239,6 @@ def detect_and_translate(text: str):
         except Exception as e2:
             print(f"Translation failed (attempt 2): {e2}")
 
-    # Translation didn't change anything (or errored both times) — treat as
-    # untranslated so downstream logic doesn't silently rely on non-English
-    # text as if it were English.
     return text, False, lang
 
 
@@ -261,7 +254,7 @@ def get_model():
         if os.path.exists(MODEL_DIR):
             source = MODEL_DIR
         elif HF_MODEL_REPO:
-            print(f"Local model not found at {MODEL_DIR} — downloading from Hugging Face Hub: {HF_MODEL_REPO}")
+            print(f"Local model not found at {MODEL_DIR} -- downloading from Hugging Face Hub: {HF_MODEL_REPO}")
             source = HF_MODEL_REPO
         else:
             raise RuntimeError(
@@ -272,14 +265,6 @@ def get_model():
         _tokenizer = AutoTokenizer.from_pretrained(source)
         model = AutoModelForSequenceClassification.from_pretrained(source)
         model.eval()
-        # Dynamic int8 quantization of Linear layers — cuts memory footprint
-        # roughly 4x for those layers (which make up most of a transformer's
-        # parameters), with minimal accuracy impact, and is specifically
-        # optimized for CPU inference (unlike float16, which isn't well
-        # accelerated on most CPUs). Applied at load time rather than saved
-        # to disk, so this works whether the model comes from local disk or
-        # Hugging Face Hub. Matters a lot on memory-constrained deploys
-        # (e.g. Render's free 512MB tier).
         _model = torch.quantization.quantize_dynamic(
             model, {torch.nn.Linear}, dtype=torch.qint8
         )
@@ -287,18 +272,6 @@ def get_model():
 
 
 def predict_proba_batch(texts):
-    """
-    Takes a list of raw strings, returns an (n_texts, n_labels) numpy array
-    of class probabilities. This is the shape LIME's text explainer expects —
-    it calls this repeatedly on perturbed versions of the input text to work
-    out which words push the prediction which way.
-
-    Processes in small sub-batches (BATCH_CHUNK_SIZE) rather than tokenizing
-    every perturbed text at once — LIME can call this with 100+ texts in a
-    single pass, and padding+forward-passing all of them together spikes
-    peak memory far higher than processing a few at a time. This matters a
-    lot on memory-constrained deploys (e.g. Render's free 512MB tier).
-    """
     model, tokenizer = get_model()
     BATCH_CHUNK_SIZE = 16
     all_probs = []
@@ -318,20 +291,10 @@ def predict_proba_batch(texts):
 
 _explainer = LimeTextExplainer(class_names=LABELS)
 
-# Lower on memory-constrained deploys than the local default — LIME's
-# memory use scales with num_samples (more perturbed texts run through the
-# model per explanation). 100 balances stability against peak memory.
 LIME_NUM_SAMPLES = int(os.environ.get("LIME_NUM_SAMPLES", "100"))
 
 
 def explain_prediction(text: str, predicted_label: str, num_features: int = 8, num_samples: int = None):
-    """
-    Runs LIME on the input text, returning the words that most pushed the
-    prediction toward (positive weight) or away from (negative weight) the
-    predicted class. num_samples controls the accuracy/speed AND memory
-    tradeoff — LIME works by perturbing the text and re-running the model
-    many times, so lower values are faster and lighter but noisier.
-    """
     if num_samples is None:
         num_samples = LIME_NUM_SAMPLES
     label_idx = LABELS.index(predicted_label)
@@ -347,13 +310,6 @@ def explain_prediction(text: str, predicted_label: str, num_features: int = 8, n
 
 
 def split_into_chunks(text: str, tokenizer, max_tokens: int = 120):
-    """
-    Splits text on sentence boundaries and greedily packs sentences into
-    chunks that stay under max_tokens (measured with the real tokenizer, so
-    chunk boundaries are model-accurate, not just a word/char guess).
-    max_tokens is set a bit under the model's 128-token limit to leave
-    headroom for special tokens.
-    """
     sentences = re.split(r"(?<=[.!?])\s+", text.strip())
     sentences = [s for s in sentences if s]
     if not sentences:
@@ -375,10 +331,8 @@ def split_into_chunks(text: str, tokenizer, max_tokens: int = 120):
 
 
 def _predict_chunk(cleaned_text: str, model, tokenizer):
-    """Runs the model on a single chunk that's already within the token
-    limit, returning raw per-label probabilities."""
     inputs = tokenizer(cleaned_text, return_tensors="pt", truncation=True, max_length=128)
-    inputs.pop("token_type_ids", None)  # DistilBERT doesn't accept this field
+    inputs.pop("token_type_ids", None)
     with torch.no_grad():
         logits = model(**inputs).logits
         probs = torch.softmax(logits, dim=-1).squeeze().tolist()
@@ -386,14 +340,6 @@ def _predict_chunk(cleaned_text: str, model, tokenizer):
 
 
 def predict_sentiment(text: str):
-    """
-    Returns (result_dict, num_segments). For text that fits in one 128-token
-    pass, num_segments is 1 and this behaves as before. For longer text, it's
-    split into sentence-aligned chunks, each chunk is scored separately, and
-    the per-label probabilities are averaged across chunks before picking
-    the top label — so a long entry doesn't just get silently truncated to
-    whatever fits in the first 128 tokens.
-    """
     model, tokenizer = get_model()
     cleaned = clean_for_transformer(text)
 
@@ -421,15 +367,10 @@ def predict_sentiment(text: str):
 def detect_severity(analysis_text: str, predicted_status: str, original_text: str = None):
     matched_crisis_keywords = [kw for kw in CRISIS_KEYWORDS if kw in analysis_text.lower()]
 
-    # Also check the raw, untranslated text for known crisis phrases in
-    # other languages — independent of whether translation actually worked.
     if original_text and original_text.strip().lower() != analysis_text.strip().lower():
         original_lower = original_text.lower()
         matched_crisis_keywords += [kw for kw in NON_ENGLISH_CRISIS_KEYWORDS if kw in original_lower]
 
-    # Explicit crisis language always overrides the tier, even if the model's
-    # top prediction is something else — this mirrors the original FYP's
-    # keyword safety net.
     if matched_crisis_keywords:
         tier = "Crisis"
     else:
@@ -466,14 +407,9 @@ def analyze():
         try:
             explanation = explain_prediction(analysis_text, sentiment["label"])
         except Exception as e:
-            # LIME can occasionally fail on very short/unusual input — don't let
-            # that break the whole response, the prediction itself still stands.
             print(f"LIME explanation failed: {e}")
             explanation = []
     else:
-        # Skipped for long text: LIME would perturb words outside the
-        # per-chunk 128-token window inconsistently, producing misleading
-        # explanations, and re-running it per chunk would be too slow.
         explanation = []
 
     themes = detect_symptom_themes(analysis_text)
@@ -492,26 +428,12 @@ def analyze():
 
 @app.route("/api/feedback", methods=["POST"])
 def feedback():
-    """
-    Logs whether a prediction felt accurate to the person who got it.
-
-    By default this stores ONLY prediction metadata (label, confidence,
-    accurate/inaccurate verdict) — never the original text — keeping the
-    "your text isn't stored" claim in the FAQ true.
-
-    If the person explicitly opts in (consent_save_text=True, only offered
-    in the UI alongside a correction), the text itself is ALSO written to a
-    separate file (feedback_training_data.csv) paired with the corrected
-    label, since that's what would actually be needed to retrain on this
-    feedback later. That file only ever contains rows the person explicitly
-    consented to.
-    """
     data = request.get_json() or {}
     predicted_label = data.get("predicted_label")
     was_accurate = data.get("was_accurate")
-    corrected_label = data.get("corrected_label")  # optional
+    corrected_label = data.get("corrected_label")
     consent_save_text = bool(data.get("consent_save_text", False))
-    text = data.get("text")  # only used if consent_save_text is True
+    text = data.get("text")
 
     if predicted_label not in LABELS or not isinstance(was_accurate, bool):
         return jsonify({"error": "Invalid feedback payload"}), 400
@@ -531,8 +453,6 @@ def feedback():
         ])
 
     if consent_save_text and text and text.strip():
-        # The label to pair with the text: the person's correction if they
-        # gave one, otherwise the model's own (confirmed-accurate) label.
         training_label = corrected_label or predicted_label
         is_new_training_file = not os.path.exists(FEEDBACK_TRAINING_DATA_PATH)
         with open(FEEDBACK_TRAINING_DATA_PATH, "a", newline="", encoding="utf-8") as f:
@@ -551,13 +471,6 @@ def feedback():
 
 @app.route("/api/batch-analyze", methods=["POST"])
 def batch_analyze():
-    """
-    Accepts an uploaded CSV with a text column (text/content/statement/
-    message), runs the classifier + severity check on each row (no LIME —
-    that would make a 150-row batch far too slow), and returns per-row
-    results plus aggregate distributions. Nothing from the CSV is written
-    to disk; it's processed in memory and returned in the response only.
-    """
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
 
@@ -591,7 +504,7 @@ def batch_analyze():
             return jsonify({"error": str(e)}), 503
         severity = detect_severity(analysis_t, sentiment["label"], original_text=t)
         results.append({
-            "text_preview": (t[:80] + "…") if len(t) > 80 else t,
+            "text_preview": (t[:80] + "...") if len(t) > 80 else t,
             "label": sentiment["label"],
             "confidence": sentiment["confidence"],
             "severity": severity["tier"],
@@ -635,7 +548,4 @@ def dashboard_data():
 
 
 if __name__ == "__main__":
-    # use_reloader=False: PyTorch touches its own internal files on import,
-    # which the debug reloader misreads as code changes and restarts on
-    # endlessly. debug=True still gives you tracebacks in the browser.
     app.run(debug=True, use_reloader=False)
