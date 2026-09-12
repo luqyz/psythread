@@ -218,13 +218,23 @@ def detect_and_translate(text: str):
     except LangDetectException:
         return text, False, "unknown"
 
-    if lang == "en":
+    if lang != "ms" and lang != "id":
+        # langdetect is especially unreliable on very short text -- it can
+        # misdetect Malay/Indonesian into completely unrelated languages
+        # (seen in practice: 4-word Malay text misdetected as Tagalog),
+        # which then makes the translator translate FROM the wrong source
+        # language and produce garbled, meaning-changing output. Check for
+        # Malay function words regardless of what wrong language langdetect
+        # guessed, not just when it guessed "en".
         text_words = set(re.findall(r"[a-z]+", text.lower()))
         malay_hits = text_words & MALAY_FUNCTION_WORDS
         if len(malay_hits) >= 2:
             lang = "ms"
-        else:
+        elif lang == "en":
             return text, False, "en"
+        # For any other non-Malay, non-English guess with no Malay evidence,
+        # fall through and attempt translation from the detected language
+        # anyway -- better than assuming English.
 
     try:
         translated = GoogleTranslator(source=lang, target="en").translate(text)
