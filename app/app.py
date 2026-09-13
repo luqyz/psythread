@@ -24,6 +24,11 @@ from lime.lime_text import LimeTextExplainer
 from langdetect import detect, LangDetectException, DetectorFactory
 from deep_translator import GoogleTranslator, MyMemoryTranslator
 
+try:
+    from google.cloud import firestore
+except ImportError:
+    firestore = None
+
 # langdetect's algorithm is probabilistic and non-deterministic by default --
 # the same short text can get different results on different runs. Seeding
 # it makes detection consistent, which matters a lot for a safety-relevant
@@ -50,6 +55,34 @@ LABELED_DATA_PATH = os.path.join(BASE_DIR, "data", "labeled_data.csv")
 TOPICS_PATH = os.path.join(BASE_DIR, "data", "topics.json")
 FEEDBACK_LOG_PATH = os.path.join(BASE_DIR, "data", "feedback_log.csv")
 FEEDBACK_TRAINING_DATA_PATH = os.path.join(BASE_DIR, "data", "feedback_training_data.csv")
+
+_firestore_client = None
+_firestore_unavailable = False
+
+
+def get_firestore_client():
+    """
+    Returns a Firestore client, or None if Firestore isn't set up (e.g.
+    running locally without credentials, or the library isn't installed).
+
+    Feedback data written to local CSV files doesn't survive on Cloud Run --
+    its filesystem is ephemeral and gets wiped on every container restart
+    or redeploy. Firestore gives feedback a persistent home in production;
+    CSV files remain as an automatic fallback for local development, where
+    a real filesystem is available and Firestore credentials usually aren't
+    configured.
+    """
+    global _firestore_client, _firestore_unavailable
+    if _firestore_unavailable:
+        return None
+    if _firestore_client is None and firestore is not None:
+        try:
+            _firestore_client = firestore.Client()
+        except Exception as e:
+            print(f"Firestore unavailable, falling back to local CSV: {e}")
+            _firestore_unavailable = True
+            return None
+    return _firestore_client
 
 LABELS = [
     "Normal",
@@ -512,11 +545,14 @@ def feedback():
     "your text isn't stored" claim in the FAQ true.
 
     If the person explicitly opts in (consent_save_text=True, only offered
-    in the UI alongside a correction), the text itself is ALSO written to a
-    separate file (feedback_training_data.csv) paired with the corrected
-    label, since that's what would actually be needed to retrain on this
-    feedback later. That file only ever contains rows the person explicitly
-    consented to.
+    in the UI alongside a correction), the text itself is ALSO stored,
+    paired with the corrected label, since that's what would actually be
+    needed to retrain on this feedback later. That store only ever contains
+    rows the person explicitly consented to.
+
+    Writes to Firestore when available (production, Cloud Run), and falls
+    back to local CSV files otherwise (local development) -- see
+    get_firestore_client() for why.
     """
     data = request.get_json() or {}
     predicted_label = data.get("predicted_label")
@@ -530,33 +566,52 @@ def feedback():
     if corrected_label is not None and corrected_label not in LABELS:
         return jsonify({"error": "Invalid corrected_label"}), 400
 
-    is_new_file = not os.path.exists(FEEDBACK_LOG_PATH)
-    with open(FEEDBACK_LOG_PATH, "a", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        if is_new_file:
-            writer.writerow(["timestamp_utc", "predicted_label", "was_accurate", "corrected_label"])
-        writer.writerow([
-            datetime.now(timezone.utc).isoformat(),
-            predicted_label,
-            was_accurate,
-            corrected_label or "",
-        ])
+    timestamp = datetime.now(timezone.utc).isoformat()
+    db = get_firestore_client()
+    print(f"DEBUG: get_firestore_client() returned: {db!r}")
+
+    if db is not None:
+        try:
+            doc_ref = db.collection("feedback_log").add({
+                "timestamp_utc": timestamp,
+                "predicted_label": predicted_label,
+                "was_accurate": was_accurate,
+                "corrected_label": corrected_label or "",
+            })
+            print(f"DEBUG: feedback_log write succeeded: {doc_ref}")
+        except Exception as e:
+            print(f"DEBUG: feedback_log write FAILED: {e}")
+    else:
+        is_new_file = not os.path.exists(FEEDBACK_LOG_PATH)
+        with open(FEEDBACK_LOG_PATH, "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            if is_new_file:
+                writer.writerow(["timestamp_utc", "predicted_label", "was_accurate", "corrected_label"])
+            writer.writerow([timestamp, predicted_label, was_accurate, corrected_label or ""])
 
     if consent_save_text and text and text.strip():
         # The label to pair with the text: the person's correction if they
         # gave one, otherwise the model's own (confirmed-accurate) label.
         training_label = corrected_label or predicted_label
-        is_new_training_file = not os.path.exists(FEEDBACK_TRAINING_DATA_PATH)
-        with open(FEEDBACK_TRAINING_DATA_PATH, "a", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
-            if is_new_training_file:
-                writer.writerow(["timestamp_utc", "content", "label", "was_correction"])
-            writer.writerow([
-                datetime.now(timezone.utc).isoformat(),
-                text.strip(),
-                training_label,
-                bool(corrected_label),
-            ])
+
+        if db is not None:
+            try:
+                doc_ref2 = db.collection("feedback_training_data").add({
+                    "timestamp_utc": timestamp,
+                    "content": text.strip(),
+                    "label": training_label,
+                    "was_correction": bool(corrected_label),
+                })
+                print(f"DEBUG: feedback_training_data write succeeded: {doc_ref2}")
+            except Exception as e:
+                print(f"DEBUG: feedback_training_data write FAILED: {e}")
+        else:
+            is_new_training_file = not os.path.exists(FEEDBACK_TRAINING_DATA_PATH)
+            with open(FEEDBACK_TRAINING_DATA_PATH, "a", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                if is_new_training_file:
+                    writer.writerow(["timestamp_utc", "content", "label", "was_correction"])
+                writer.writerow([timestamp, text.strip(), training_label, bool(corrected_label)])
 
     return jsonify({"status": "ok"})
 

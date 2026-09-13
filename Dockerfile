@@ -2,6 +2,13 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Without this, Python buffers stdout/stderr in a container (non-TTY)
+# environment -- print() output can sit in memory indefinitely instead of
+# reaching `gcloud run services logs read`, since gunicorn's worker process
+# never exits to force a flush. This made debugging (translation errors,
+# Firestore write status, etc.) unreliable until fixed.
+ENV PYTHONUNBUFFERED=1
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 

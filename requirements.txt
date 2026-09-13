@@ -14,7 +14,7 @@ langdetect>=1.0.9
 deep-translator>=1.11.4
 flask==3.0.3
 gunicorn>=21.2.0
+google-cloud-firestore>=2.16.0
 matplotlib>=3.8.4
 wordcloud>=1.9.3
 tqdm>=4.66.2
-gunicorn
